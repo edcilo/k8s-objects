@@ -1,0 +1,79 @@
+apiVersion: v1
+kind: Pod
+metadata:
+  name: web
+  namespace: edcilo
+  labels:
+    app: nginx
+    version: v1
+spec:
+  restartPolicy: Always
+  containers:
+  - name: nginx
+    image: nginx:alpine
+    imagePullPolicy: Always
+    ports:
+      - name: http
+        containerPort: 80
+    env:
+      - name: USERNAME
+        value: Lynn
+      - name: FOO
+        valueFrom:
+          configMapKeyRef:
+            name: web-configmap
+            key: foo
+      - name: ENVFILE
+        valueFrom:
+          configMapKeyRef:
+            name: web-configmap
+            key: envfile
+      - name: PASSWORD
+        valueFrom:
+          secretKeyRef:
+            name: web-secret
+            key: PASSWORD
+    resources:
+      requests:
+        memory: 120Mi
+        cpu: 100m
+      limits:
+        memory: 240Mi
+        cpu: 300m
+    volumeMounts:
+      - name: dbconfig
+        mountPath: /config
+      - name: authtoken
+        mountPath: /authorization
+    startupProbe:
+      httpGet:
+        path: /
+        port: 80
+      failureThreshold: 30
+      periodSeconds: 10
+    readinessProbe:
+      exec:
+        command:
+        - cat
+        - /etc/nginx/conf.d/default.conf
+      initialDelaySeconds: 5
+      periodSeconds: 60
+    livenessProbe:
+      httpGet:
+        path: /
+        port: 80
+      initialDelaySeconds: 10
+      periodSeconds: 5
+  volumes:
+    - name: dbconfig
+      configMap:
+        name: web-configmap
+        items:
+          - key: dbconfig
+            path: .env
+    - name: authtoken
+      secret:
+        secretName: web-secret
+        items:
+          - key: token
+            path: .authrization

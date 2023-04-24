@@ -1,0 +1,15 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: web-configmap
+  namespace: edcilo
+data:
+  foo: bar
+  bar: "hello world"  # if the string has empty spaces use quotes
+  num: "1"            # number values must to be strings
+  envfile: /app/.env
+  dbconfig: |-
+    USER: lyn
+    PASS: 123
+    HOST: localhost
+    PORT: 8080
